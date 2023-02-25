@@ -1,0 +1,203 @@
+Q1. A simulation used to track the stock price using the given information from the analyst could work as follows. For each day out of the amount of days that the simulation is required to be run, draw a random number from a uniform distribution. This random uniformly distributed number can be used in conjunction with the stock price movement table. If the random number drawn from the uniform distribution is less than or equal to .45, we can set a variable keeping track of the stock price movement to say the stock price will go up, if the number is less than or equal to .75, we can set the variable keeping track of the stock price movement to say the price will stay the same, and finally, if the random number is less than or equal to 1, we can set the stock price movement variable to say that the stock price will decrease.
+After the direction of the stock price movement is determined, we must construct a method for determining by how much the stock price will move in this direction. This can be done by drawing another random uniformly distributed number between 0 and 1. This number can be used in conjunction with the stock price change table to determine by how much the stock price should change. The probabilities associated with each amount the stock price should change form a probability mass function, and these values need to be stored in a data structure that will allow for easy access to compare the randomly drawn number to. To choose each change amount by the proportion they are supposed to be chosen from the pdf, we should construct a cumulative distribution function from the pdf, then iterate through each value of x, or stock price change and the associated p(x). The cdf of the given pdf will look like this.
+	Probabilities
+Stock Price Change	Increase	Decrease
+1/8	.40	.12
+¼	.57	.27
+3/8	.69	.45
+½	.79	.66
+5/8	.87	.8
+¾	.94	.9
+7/8	.98	.95
+1	1	1
+		
+		
+	
+For either the increase or decrease column, I will put these values in a list beginning with the probability of X <1/8, and continue iterating through the rest of the values of X. I draw a random number from a uniform distribution before I start iterating. At each iteration, I then compare the random number to the P(X<x), if the random number is less than the corresponding F(X) probability, I choose the stock price change value X as the change to be applied to the stock. By the way the CDF is constructed and the way that I iterate through from the beginning, this ensures that each stock price change will be picked the with frequencies corresponding to the given PDF. For example, in the given PDF, a stock change of proportion  X=1 should only occur 2% of the time. In the CDF the corresponding F(X) is 1, and every other X is compared to the random number before X=7/8. Since a random number between 0 and 1 will only be greater than the X before X=1 ,(F(7/8) = .98) 2% of the time, and every other value of X in the CDF, this means that a stock price proportion change of X=1 will only be selected 2% of the time, as required by the PDF.
+For the stock price change selected, we multiply the change by the current stock price, and then add or subtract this from the stock price depending on whether the movement determined earlier is increase or decrease.
+This process is repeated for 30 iterations.
+
+b) After running the simulation for 30 days, we get a final price of 29.46. I have included a pyplot graph of the simulated stock price over the 30 days.
+ 
+
+c) 
+A problem with the simulation is that if the stock price ever gets to 0, it is stuck at zero as any proportion change of 0 is just 0.
+
+
+import random
+import matplotlib.pyplot as plt
+stock_prices = []
+def simulate_stock_price(current_price, days):
+    #Iterate through the amount of days required for simulation
+    for i in range(days):
+        #Add stock price to a list for graphing purposes
+        stock_prices.append(current_price)
+        #Generate a random number between 0 and 1 inclusive
+        random_number = random.uniform(0, 1)
+        # if the random number is less than .45, price movement is increase
+        if random_number < 0.45:
+            movement = "increase"
+        # if the random number is between 0.45 and 0.75, price movement is same
+        elif random_number < 0.75:
+            movement = "same"
+        # if the random number is between 0.75 and 1, price movement is decrease
+        else:
+            movement = "decrease"
+        
+        # Step 2
+        if movement == "increase":
+            # CDF of the price change amounts
+            change_probabilities = [0.40, 0.57, 0.69, 0.79, 0.87, 0.94, 0.98, 1]
+            
+            change_amounts = [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1]
+            # Generate another random number
+            random_number = random.uniform(0, 1)
+            # Iterate through the CDF of change probabilities
+            for j in range(8):
+                # change amount will be the change amount that corresponds with the first change probability
+                # in the CDF that is greater than the random number
+                # This ensures that each change amount is selected with the correct proportion with 
+                # respect to the given stock price change PDF
+                
+                if random_number < change_probabilities[j]:
+                    current_price += current_price * change_amounts[j]
+                    
+                    break
+        # if movement is same, do nothing 
+        elif movement == "same":
+            pass
+        # same logic as for a price increase, with the change amounts as negative numbers to reflect
+        # a price decrease
+        else:
+            change_probabilities = [0.12, 0.27, 0.45, 0.66, 0.80, 0.90, 0.95, 1]
+            change_amounts = [-0.125, -0.25, -0.375, -0.5, -0.625, -0.75, -0.875, -1]
+            random_number = random.uniform(0, 1)
+            for j in range(8):
+                if random_number < change_probabilities[j]:
+                    current_price += current_price * change_amounts[j]
+                    
+                    break
+    # After simulating the stock price for each day out of the total days return the current price
+    return current_price
+
+current_price = 62
+days = 365
+simulated_price = simulate_stock_price(current_price, days)
+print(simulated_price)
+plt.plot([x for x in range(1,days+1)],stock_prices)
+plt.xlabel("DAY")
+plt.ylabel("STOCK PRICE")
+plt.title("Stock price on day")
+plt.show()
+
+
+
+
+
+Q2.
+ 
+
+
+
+
+/buckl/Desktop/trinity/mansci/Assignment 4/Q2.py"
+The Chi-square test indicates that the goodness-of-fit is not acceptable (p-value = 0.000)
+PS C:\Users\buckl\Documents\GitHub\ML-Annual-Report-Summariser>
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import chisquare
+
+# Generate 100 values of an exponentially distributed random variate with a mean of 0.5
+
+x = np.random.exponential(scale=0.5, size=100)
+
+# Count the number of values in each subinterval of length 0.25
+bins = np.arange(0, max(x), 0.25)
+hist, bin_edges = np.histogram(x, bins=bins)
+
+# Plot the histogram
+plt.hist(x, bins=bins, edgecolor='black')
+plt.xlabel('Values')
+plt.ylabel('Frequency')
+plt.title('Histogram of Exponentially Distributed Random Variates')
+plt.show()
+
+# Perform a Chi-square test to test the goodness-of-fit
+
+chi_square, p_value = chisquare(hist)
+
+# Comment on the test results
+if p_value < 0.05:
+    print("The Chi-square test indicates that the goodness-of-fit is not acceptable (p-value = {:.3f})".format(p_value))
+else:
+    print("The Chi-square test indicates that the goodness-of-fit is acceptable (p-value = {:.3f})".format(p_value))
+
+
+
+
+The histogram shows the plotted random exponentially distributed variates. It is can clearly be seen that the data is exponential from the histogram. The chi-square test tests the null hypothesis that the data follows a uniform distribution. For the exponential data generated in this program, the p-value for the null hypothesis that the data follows a uniform distribution is negligible. This prompts us to reject the null hypothesis and conclude that the alternative hypothesis that the data does not follow a uniform distribution is true. The fact that the tested null hypothesis; that the data follows a uniform distribution, was significant is trivial, as the data was sampled/generated from an exponential distribution.
+
+Q3. 
+	
+X	P(X)
+1	0.9717615
+2	0.0266665
+3	0.0014023
+4	0.0001482
+5	0.0000214
+
+
+	E(X) = ∑ X*P(X)
+1*0.9717615 + 2*0.0266665 + 3*0.0014023 + 4*0.0001482+5*0.0000214 = 1.0300012
+〖Var(X)= E(X〗^2)-(〖E(X))〗^2  
+E(X^2 )=∑X^2*P(X)  = 1.0939544
+〖E(X)〗^2=1.060902472 
+Var(X)=1.0939544-1.060902472=0.033051928 
+	
+Y	P(Y)
+1	0.9650963656
+2	0.03331428873
+3	0.001486791541
+4	0.00008627182039
+5	0.00001628228723
+
+
+	E(Y) = 1.03661181640071
+Var(Y) = 0.03895799279441037
+
+y = [1,2,3,4,5]
+y_probs = [0.9650963656,0.03331428873,0.001486791541,0.00008627182039,0.00001628228723]
+
+y_expected = 0
+
+for i in range(len(y)):
+    y_expected += y[i] * y_probs[i]
+
+print("Expected value of y is ",y_expected)
+
+y_squared_expected = 0
+import math
+for i in range(len(y)):
+    y_squared_expected+= math.pow(y[i],2) * y_probs[i]
+
+var_y = y_squared_expected - math.pow(y_expected,2)
+
+print("Variance of y is ", var_y)
+
+Output of program:
+Expected value of y is 1.03661181640071
+Variance of y is 0.03895799279441037
+
+
+
+
+
+
+	My answer does support the view that there is an upward trend in multiple births. The expected value of the number of children born in a single birth has risen from roughly 1.030 in 2006 to 1.037 in 2016.
+ 
+
+ 
+
+It can be seen graphically that there is a higher probability of 2 children being born in 2016 than in 2006.
+
